@@ -63,8 +63,8 @@ The `antigravity` plugin is registered as a local marketplace:
 ```json
 // ~/.claude/plugins/known_marketplaces.json
 "antigravity-devkit": {
-  "source": { "source": "local", "path": "D:\\antigravity\\devkit" },
-  "installLocation": "D:\\antigravity\\devkit"
+  "source": { "source": "local", "path": "<portfolio-root>\\devkit" },
+  "installLocation": "<portfolio-root>\\devkit"
 }
 ```
 

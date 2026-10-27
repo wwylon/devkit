@@ -23,13 +23,15 @@ HOUSE_DENY: list[str] = [
     "*.pkl",
     "_tmp_*",
     "publish.manifest.yaml",  # house ops — not for strangers
+    "*.public.md",  # overlay sources; exported under their dest names
+    "*.public.yaml",
 ]
 
 # Compiled against file contents (and path strings) in the public tree after export.
 HOUSE_SCAN_FORBID_REGEX: list[str] = [
-    r"D:\\antigravity",
     r"<portfolio-root>",
-    r"C:\\Users\\wwylo",
+    r"<portfolio-root>",
+    r"<home>",
     r"<home>",
     # plan/token.txt is checked as a real file by doctor; docs may name it.
     # literal assigned secrets (quoted). Skip code that generates tokens.
@@ -53,11 +55,13 @@ SCAN_ALLOW_SUBSTRINGS: list[str] = [
 
 # Applied to text files during export (private absolute paths → public placeholders).
 # Order matters: longer / more-specific patterns first.
-# Use non-raw "\\" escapes so each pattern has a single backslash on disk.
+# Use non-raw "\\" escapes. Doubled-backslash forms first (Python/YAML examples).
 HOUSE_PATH_REWRITES: list[tuple[str, str]] = [
-    ("C:\\Users\\wwylo", "<home>"),
+    ("C:\\\\Users\\\\wwylo", "<home>"),
     ("<home>", "<home>"),
-    ("D:\\antigravity", "<portfolio-root>"),
+    ("<home>", "<home>"),
+    ("D:\\\\antigravity", "<portfolio-root>"),
+    ("<portfolio-root>", "<portfolio-root>"),
     ("<portfolio-root>", "<portfolio-root>"),
 ]
 
