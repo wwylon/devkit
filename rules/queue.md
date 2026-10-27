@@ -4,7 +4,7 @@ Shared queue discipline. Authoring YAML, preflight, pipelines, `tq` details: [qu
 
 ### First calls (every session that touches the queue)
 
-1. **Create tasks** = write YAML under `<project>/experiments/operator_queue/` then `tq sync`. MCP `enqueue_task` only re-queues *existing* terminal tasks — it cannot create new ones.
+1. **Create tasks** = MCP `submit_task` / `submit_matrix` (preferred when MCP is configured), or write YAML under `<project>/experiments/operator_queue/` then `tq sync`. MCP `enqueue_task` / `retry_task` only re-queue *existing* terminal tasks — they cannot create.
 2. Set **`TQ_OPERATOR`** in the environment so `started_by` / `my_tasks` work.
 3. Run **`tq doctor`** (and/or MCP `queue_status`) before overnight leave — confirm home `~/.taskqueue` and port **8765**.
 4. **After `tq sync` / `tq add` / `tq retry`, start a waiter in the same turn:** `tq wait <project>/<task_id> --timeout 3600` as a background command (Claude Code `run_in_background` wakes you when it exits; `tq` prints this as a `Next:` line). Exit 0 = completed, 1 = failed/stopped → `tq diagnose`, 2 = timeout → start it again. On wake, report the result and update `plan/NOW.md`. MCP `wait_for_task` is the same thing where the tq MCP server is configured; never poll with sleep loops. `notify_url` is only an external webhook.

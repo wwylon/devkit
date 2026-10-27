@@ -120,6 +120,8 @@ Projects / workers
 | `task_result` | Structured result: exit_code, duration, peaks, metrics, error_code |
 | `drain_notifications` | Terminal events from `notify.jsonl` (written for every task; `since` cursor, `wait_sec` long-poll). Other replies carry `finished_since_last_call` |
 | `agent_usage_summary` / `tq agents` | Usage analytics: who calls what, task provenance + outcomes (counters only) |
+| `list_projects` | Registered projects + `root` / `queue_dir` |
+| `submit_task` / `submit_matrix` | **Create** new task(s) from YAML text (preferred MCP create path) |
 | `enqueue_task` / `retry_task` | Re-queue **existing** terminal task only — cannot create |
 | `patch_task` | `priority` / `enabled` / `wall_clock_cap_sec` / `max_attempts` |
 | `stop_task` | Cooperative stop |
