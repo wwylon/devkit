@@ -1,6 +1,6 @@
 # Queue Rules (core)
 
-Shared queue discipline. Authoring YAML, preflight, pipelines, `tq` details: [queue-authoring.md](queue-authoring.md) (read when writing a task YAML or planning a pipeline); triage/CLI/wait patterns: [queue-reference.md](queue-reference.md); skill `/queue-task`. Specs: `taskqueue/docs/task_standards.md`, `taskqueue/README.md`, `taskqueue/docs/mcp.md`, `taskqueue/docs/WORKER_SETUP.md` (under `<portfolio-root>/taskqueue`).
+Shared queue discipline. Authoring YAML, preflight, pipelines, `tq` details: [queue-authoring.md](queue-authoring.md) (read when writing a task YAML or planning a pipeline); triage/CLI/wait patterns: [queue-reference.md](queue-reference.md); skill `/queue-task`. Specs (taskqueue repo): `docs/task_standards.md`, `README.md`, `docs/mcp.md`, `docs/WORKER_SETUP.md` — https://github.com/wwylon/taskqueue
 
 ### First calls (every session that touches the queue)
 
@@ -16,7 +16,7 @@ Shared queue discipline. Authoring YAML, preflight, pipelines, `tq` details: [qu
 
 * Launch >~2 min jobs as in-session background shells — use operator-queue YAMLs.
 * Invent YAML keys / worker APIs — use `task_standards.md` + README.
-* Open or edit the retired **`taskqueue-dev`** tree — all work is in `<portfolio-root>\taskqueue`.
+* Invent a parallel taskqueue “dev” tree — use the product `main` checkout only.
 * Treat `dispatch: remote` as a way to park work with no fleet (it falls back to local when no workers are online).
 * Mass-`tq retry` without triage — see [queue-reference.md](queue-reference.md) hygiene.
 

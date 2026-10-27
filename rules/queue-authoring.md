@@ -4,12 +4,12 @@ Shared queue discipline for all antigravity projects. These rules apply whenever
 
 ## Official Standards & Reference Docs
 
-For detailed technical specifications on writing task scripts and configuring them under the taskqueue system, see:
-* **[Task Standards and Conventions](<portfolio-root>\taskqueue\docs\task_standards.md)** (or the active checkout’s `docs/task_standards.md`): Progress `(XX.X%)` contract, checkpoint/`resume_args`, resources, full YAML field reference, dispatch/workers, opt-in `notify_url`.
-* **[MCP server](<portfolio-root>\taskqueue\docs\mcp.md)** (or active checkout): configure Cursor/Claude for `tq mcp`; tools including `drain_notifications`, `progress_snapshot`, `diagnose`.
-* **[Project README](<portfolio-root>\taskqueue\README.md)**: State home, full CLI (`tq metrics`, `tq diagnose`, …), session planning vs queue. All queue-tool edits: `<portfolio-root>\taskqueue`.
-* **[Master–worker configuration](<portfolio-root>\taskqueue\docs\WORKER_SETUP.md)** (or active checkout): bind, auth, `worker.yaml`, setup checklist.
-* **[Master–worker architecture](master-worker.md)**: dispatch, sync, disconnect, logs — for remote YAML and triage.
+For detailed technical specifications on writing task scripts and configuring them under the taskqueue system, see (https://github.com/wwylon/taskqueue or your local checkout):
+* **[Task Standards](https://github.com/wwylon/taskqueue/blob/main/docs/task_standards.md)** — Progress `(XX.X%)` contract, checkpoint/`resume_args`, resources, YAML fields, dispatch/workers, `notify_url`.
+* **[MCP server](https://github.com/wwylon/taskqueue/blob/main/docs/mcp.md)** — `tq mcp` tools including `drain_notifications`, `progress_snapshot`, `diagnose`.
+* **[Project README](https://github.com/wwylon/taskqueue/blob/main/README.md)** — state home, CLI (`tq metrics`, `tq diagnose`, …).
+* **[Master–worker configuration](https://github.com/wwylon/taskqueue/blob/main/docs/WORKER_SETUP.md)** — bind, auth, `worker.yaml`, setup checklist.
+* **[Master–worker architecture](master-worker.md)** — dispatch, sync, disconnect, logs — for remote YAML and triage.
 
 ### First calls (every session that touches the queue)
 
@@ -25,7 +25,7 @@ For detailed technical specifications on writing task scripts and configuring th
 
 * Launch >~2 min jobs as in-session background shells — use operator-queue YAMLs.
 * Invent YAML keys / worker APIs — use `task_standards.md` + README.
-* Open or edit the retired **`taskqueue-dev`** tree — all work is in `<portfolio-root>\taskqueue`.
+* Invent a parallel taskqueue “dev” tree — use the product `main` checkout only.
 * Treat `dispatch: remote` as a way to park work with no fleet (it falls back to local when no workers are online).
 * Mass-`tq retry` without triage — see [queue-reference.md](queue-reference.md) hygiene.
 

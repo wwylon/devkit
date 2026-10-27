@@ -5,9 +5,9 @@ Applies when working in any repo that registers a `.llm-localize.toml`
 
 ## What it is
 
-Package at `<portfolio-root>\llm_localize`. Translates, validates, and scans
-message catalogues with a local LLM (Ollama). Consumer repos own all catalogue
-data; the package supplies machinery only.
+The **llm_localize** package translates, validates, and scans message catalogues
+with a local LLM (Ollama). Consumer repos own all catalogue data; the package
+supplies machinery only.
 
 ## Hard constraints (do not violate)
 

@@ -12,9 +12,8 @@ individual files from `rules/`.
 |------|----------|
 | `rules/` | Portable rules (`queue`, `plan-structure`, `house-standard`, `publish`, …) |
 | `conventions/` | Templates for `plan/NOW`, `tasks`, STATUS, archive, publish manifests |
-| `plugins/antigravity/` | Claude Code plugin: `/optimize`, `/queue-task`, `/publish`, `/idea`, `/handoff`, … |
+| `plugins/antigravity/` | Claude Code plugin: `/optimize`, `/queue-task`, `/publish`, `/handoff`, `/new-problem`, `/benchmark`, … |
 | `tools/publish/` | Allowlist export → public GitHub mirrors (scan / verify / gated push) |
-| `docs/` | House runbook and standardization notes |
 
 Companion OSS product: [taskqueue](https://github.com/wwylon/taskqueue) (daemon, `tq` CLI, web UI, MCP).
 

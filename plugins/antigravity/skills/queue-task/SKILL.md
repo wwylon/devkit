@@ -30,7 +30,7 @@ Author a queue YAML for: $ARGUMENTS
 ## Steps
 
 1. Identify which project this task belongs to (check cwd or ask).
-2. If editing the queue tool itself, work in `<portfolio-root>\taskqueue` (`main`, port **8765**). Do not use the retired `taskqueue-dev` tree.
+2. If editing the queue tool itself, work in the **taskqueue** product checkout (`main`, port **8765**).
 3. Run `tq doctor` and confirm home / port / protocol before leaving overnight verification.
 4. Look up the relevant CLI's `--help` output to get exact flags.
 5. If the task references a checkpoint, run the inspect command and read the output.
