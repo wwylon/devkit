@@ -10,6 +10,14 @@ from pathlib import Path
 from .house_defaults import SCAN_ALLOW_SUBSTRINGS
 from .manifest import PublishManifest
 
+# Path-leak regexes that the publish toolkit itself must keep as literal patterns.
+_PATH_LEAK_MARKERS = (
+    r"D:\\antigravity",
+    r"D:/antigravity",
+    r"C:\\Users\\wwylo",
+    r"C:/Users/wwylo",
+)
+
 SKIP_SUFFIXES = {
     ".png",
     ".jpg",
@@ -60,6 +68,9 @@ def scan_tree(m: PublishManifest) -> dict:
             continue
         checked += 1
         for pat, cre in patterns:
+            # Exporter sources name house paths as rewrite/scan patterns — not leaks.
+            if rel.startswith("tools/publish/") and pat in _PATH_LEAK_MARKERS:
+                continue
             for match in cre.finditer(text):
                 snippet = match.group(0)
                 if _allowed(snippet) or _allowed(text[max(0, match.start() - 40) : match.end() + 40]):

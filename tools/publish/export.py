@@ -110,15 +110,24 @@ def _should_rewrite_text(path: Path) -> bool:
     return path.suffix.lower() in TEXT_REWRITE_SUFFIXES
 
 
+def _skip_path_rewrite(rel_posix: str) -> bool:
+    """Publish toolkit sources intentionally contain house path *patterns*."""
+    rel = rel_posix.replace("\\", "/")
+    return rel.startswith("tools/publish/")
+
+
 def _rewrite_house_paths(text: str) -> str:
     for old, new in HOUSE_PATH_REWRITES:
         text = text.replace(old, new)
     return text
 
 
-def _copy_file(src: Path, dest: Path) -> None:
+def _copy_file(src: Path, dest: Path, *, rel_posix: str | None = None) -> None:
     dest.parent.mkdir(parents=True, exist_ok=True)
-    if _should_rewrite_text(src):
+    rewrite = _should_rewrite_text(src) and not (
+        rel_posix is not None and _skip_path_rewrite(rel_posix)
+    )
+    if rewrite:
         try:
             raw = src.read_text(encoding="utf-8")
         except UnicodeDecodeError:
@@ -191,7 +200,7 @@ def export_tree(m: PublishManifest, *, dry_clear: bool = True) -> dict:
     copied: list[str] = []
     for src, rel in _iter_allow_files(m.private_root, m.allow, m.deny):
         dest = m.public_root / rel
-        _copy_file(src, dest)
+        _copy_file(src, dest, rel_posix=rel)
         copied.append(rel)
 
     for ov in m.overlays:

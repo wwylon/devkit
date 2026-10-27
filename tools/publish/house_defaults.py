@@ -29,10 +29,10 @@ HOUSE_DENY: list[str] = [
 
 # Compiled against file contents (and path strings) in the public tree after export.
 HOUSE_SCAN_FORBID_REGEX: list[str] = [
-    r"<portfolio-root>",
-    r"<portfolio-root>",
-    r"<home>",
-    r"<home>",
+    r"D:\\antigravity",
+    r"D:/antigravity",
+    r"C:\\Users\\wwylo",
+    r"C:/Users/wwylo",
     # plan/token.txt is checked as a real file by doctor; docs may name it.
     # literal assigned secrets (quoted). Skip code that generates tokens.
     r"(?i)(api[_-]?key|auth[_-]?token|password)\s*=\s*['\"][A-Za-z0-9_\-./+=]{16,}['\"]",
@@ -58,11 +58,11 @@ SCAN_ALLOW_SUBSTRINGS: list[str] = [
 # Use non-raw "\\" escapes. Doubled-backslash forms first (Python/YAML examples).
 HOUSE_PATH_REWRITES: list[tuple[str, str]] = [
     ("C:\\\\Users\\\\wwylo", "<home>"),
-    ("<home>", "<home>"),
-    ("<home>", "<home>"),
+    ("C:\\Users\\wwylo", "<home>"),
+    ("C:/Users/wwylo", "<home>"),
     ("D:\\\\antigravity", "<portfolio-root>"),
-    ("<portfolio-root>", "<portfolio-root>"),
-    ("<portfolio-root>", "<portfolio-root>"),
+    ("D:\\antigravity", "<portfolio-root>"),
+    ("D:/antigravity", "<portfolio-root>"),
 ]
 
 # Extensions treated as text for path rewriting (others copied byte-for-byte).

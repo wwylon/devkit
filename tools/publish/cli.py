@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""House publish CLI: export private trees to <portfolio-root>/public/<project>.
+"""House publish CLI: export private trees to D:/antigravity/public/<project>.
 
 Examples:
-  python <portfolio-root>/devkit/tools/publish/cli.py doctor --project-root <portfolio-root>/taskqueue
-  python <portfolio-root>/devkit/tools/publish/cli.py release --project-root <portfolio-root>/taskqueue --dry-run
+  python D:/antigravity/devkit/tools/publish/cli.py doctor --project-root D:/antigravity/taskqueue
+  python D:/antigravity/devkit/tools/publish/cli.py release --project-root D:/antigravity/taskqueue --dry-run
 """
 
 from __future__ import annotations
@@ -48,7 +48,7 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
     if not m.allow:
         issues.append("allow list is empty")
     if not m.public_root.parent.exists():
-        issues.append(f"public parent missing: {m.public_root.parent} (create <portfolio-root>/public)")
+        issues.append(f"public parent missing: {m.public_root.parent} (create D:/antigravity/public)")
     token = m.private_root / "plan" / "token.txt"
     if token.is_file():
         issues.append("plan/token.txt still present — rotate and delete before any export")
@@ -233,7 +233,7 @@ def _cmd_init_manifest(args: argparse.Namespace) -> int:
     text = TEMPLATE.read_text(encoding="utf-8")
     name = args.name or root.name
     text = text.replace("{{PROJECT}}", name)
-    text = text.replace("{{PUBLIC_ROOT}}", str(Path("<portfolio-root>/public") / name).replace("\\", "/"))
+    text = text.replace("{{PUBLIC_ROOT}}", str(Path("D:/antigravity/public") / name).replace("\\", "/"))
     dest.write_text(text, encoding="utf-8")
     print(f"wrote {dest}")
     return 0
