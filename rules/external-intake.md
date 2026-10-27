@@ -1,6 +1,6 @@
 # External intake (portable, core)
 
-Triage raw external/LLM idea dumps into verified registers. Full stages, kinds table, dedupe, dispositions and cross-product tools: [external-intake-reference.md](external-intake-reference.md) (read when ingesting). Run via skill `ingest-review <N>`.
+Triage raw external/LLM idea dumps into verified registers (kinds, dedupe, dispositions). Prefer a dedicated ingest skill when your checkout provides one.
 
 - **When:** user cites an external review path, says "triage external"/"process this review", or gives a raw LLM export → intake **before** normal queue work. Other projects' requests are not intake: use [cross-project-messages.md](cross-project-messages.md).
 - Never full-read raw exports (>~150 lines); read master/synthesis docs. One `intake_progress.md` row per theme.
