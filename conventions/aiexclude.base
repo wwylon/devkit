@@ -1,0 +1,17 @@
+# Shared AI exclude block — copy into .aiexclude and append product tails.
+.git/
+.grepai/
+.arbor/
+.repowise/
+.tags
+build/
+bin/
+out/
+node_modules/
+__pycache__/
+*.o
+*.obj
+logs/
+logs_tests/
+packed/
+models/

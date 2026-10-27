@@ -1,0 +1,9 @@
+{
+  "name": "antigravity",
+  "description": "Shared skills and agents for antigravity: optimize, queue-task, publish, idea, handoff, new-problem, benchmark, review-intake",
+  "version": "1.0.0",
+  "author": {
+    "name": "Wojtek Wylon",
+    "email": "wwylon.lwn@gmail.com"
+  }
+}

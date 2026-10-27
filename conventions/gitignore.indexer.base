@@ -1,0 +1,9 @@
+# Indexer / tags / build — merge into project .gitignore
+.grepai/
+.arbor/
+.repowise/
+.tags
+tags
+build/
+bin/
+out/

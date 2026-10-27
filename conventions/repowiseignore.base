@@ -1,0 +1,19 @@
+# Shared repowise ignore base — append product-specific lines below a copy.
+.git/
+.grepai/
+.arbor/
+.repowise/
+.claude/
+build/
+bin/
+out/
+node_modules/
+__pycache__/
+*.o
+*.obj
+*.pb.cc
+*.pb.h
+logs/
+logs_tests/
+packed/
+doxygen/

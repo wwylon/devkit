@@ -1,0 +1,48 @@
+# Copy to <project>/publish.manifest.yaml and edit allow/verify.
+# Schema: devkit/conventions/publish.manifest.schema.md
+# Tool: python <portfolio-root>/devkit/tools/publish/cli.py …
+
+project: "{{PROJECT}}"
+license: MIT
+private_root: .
+public_root: "{{PUBLIC_ROOT}}"
+public_github: "wwylon/{{PROJECT}}"
+private_github: "wwylon/{{PROJECT}}-private"
+default_branch: main
+
+version_from: pyproject.toml
+changelog: CHANGELOG.md
+
+allow:
+  - README.md
+  - LICENSE
+  - CHANGELOG.md
+  - CONTRIBUTING.md
+  - SECURITY.md
+  - CODE_OF_CONDUCT.md
+  - pyproject.toml
+  - uv.lock
+  - .github/
+  - docs/
+  - tests/
+  # - src-or-package/
+
+deny:
+  # house defaults are merged automatically; add project-only paths here
+  - experiments/
+
+overlays: []
+#  - from: AGENTS.public.md
+#    to: AGENTS.md
+#  - from: CLAUDE.public.md
+#    to: CLAUDE.md
+
+rewrites: []
+
+scan_forbid_regex: []
+# house defaults are always applied
+
+verify:
+  - echo "replace with real verify commands"
+
+export_commit_template: "export: {project} {version} (private {private_sha})"
