@@ -37,9 +37,10 @@ keeps agent tool use auditable.
   project's surface doc is canonical. Session rules cite it, they do not
   re-list it.
 - **Search / index CLIs are invent-banned** unless on the project L0 surface:
-  no `grepai watch`, `arbor *`, `repowise update|watch`, `dev_index` refresh,
-  `scip-clang`, unscoped `repomix`, or habitual `refresh_tags`. See
-  [mcp-indexers.md](mcp-indexers.md) and [resource-policy.md](resource-policy.md).
+  no `grepai` / `arbor` / `repowise` (retired — do not enable), `dev_index`
+  refresh for those tools, `scip-clang`, unscoped `repomix`, or habitual
+  `refresh_tags`. See [mcp-indexers.md](mcp-indexers.md) and
+  [resource-policy.md](resource-policy.md).
 - **Code discovery default:** L0 short docs → L1 Grep/ast-grep/ctags → L2 window
   Read. Do not invent pack/index commands to “load the repo.”
 
