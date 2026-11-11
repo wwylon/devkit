@@ -70,7 +70,7 @@ See `rules/plan-structure.md` § Experiment ledger index — same rules, don't d
 ## GPU work — additional requirements
 - Record GPU device (name, VRAM) in every GPU benchmark entry.
 - GPU-vs-CPU oracle: when a GPU kernel replaces a CPU path, run both on the same input and compare outputs with an explicit tolerance policy (e.g., "max abs diff < 1e-5 on all elements"). Tolerance must be justified, not guessed.
-- Shared-card GPU work (benchmarks, serves, model loads) runs through taskqueue with measured `gpu_vram_gib`; do not leave CUDA warm outside the queue. Prefer full `gpu_vram_gib` so CPU-only work can still run; use `exclusive: true` only when overlap is unsafe (e.g. Ollama/vLLM keep_alive). See `rules/queue.md`, `rules/queue-authoring.md`, and taskqueue `docs/task_standards.md` §3.
+- Shared-card GPU work (benchmarks, serves, model loads) runs through tqdaemon with measured `gpu_vram_gib`; do not leave CUDA warm outside the queue. Prefer full `gpu_vram_gib` so CPU-only work can still run; use `exclusive: true` only when overlap is unsafe (e.g. Ollama/vLLM keep_alive). See `rules/queue.md`, `rules/queue-authoring.md`, and tqdaemon `docs/task_standards.md` §3.
 
 ## File format / contract discipline
 

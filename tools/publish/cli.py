@@ -2,8 +2,8 @@
 """House publish CLI: export private trees to D:/antigravity/public/<project>.
 
 Examples:
-  python D:/antigravity/devkit/tools/publish/cli.py doctor --project-root D:/antigravity/taskqueue
-  python D:/antigravity/devkit/tools/publish/cli.py release --project-root D:/antigravity/taskqueue --dry-run
+  python D:/antigravity/devkit/tools/publish/cli.py doctor --project-root D:/antigravity/tqdaemon
+  python D:/antigravity/devkit/tools/publish/cli.py release --project-root D:/antigravity/tqdaemon --dry-run
 """
 
 from __future__ import annotations
@@ -23,6 +23,7 @@ if str(_PKG.parent) not in sys.path:
 
 from publish.export import export_tree, scrub_verify_artifacts  # noqa: E402
 from publish.manifest import load_manifest, read_version  # noqa: E402
+from publish import pypi as pypi_mod  # noqa: E402
 from publish.scan import scan_tree  # noqa: E402
 
 TEMPLATE = Path(__file__).resolve().parents[2] / "conventions" / "publish.manifest.template.yaml"
@@ -56,7 +57,7 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
         issues.append("plan/token.txt still present — rotate and delete before any export")
 
     ver = read_version(m)
-    init = m.private_root / "taskqueue" / "__init__.py"
+    init = m.private_root / "tqdaemon" / "__init__.py"
     # generic: look for package/__init__.py matching project name
     pkg_init = m.private_root / m.project.replace("-", "_") / "__init__.py"
     for candidate in (pkg_init, init):
@@ -253,6 +254,12 @@ def _cmd_status(args: argparse.Namespace) -> int:
     return 0
 
 
+def _as_cmds(val) -> list[str]:
+    if not val:
+        return []
+    return [val] if isinstance(val, str) else [str(x) for x in val]
+
+
 def _cmd_release(args: argparse.Namespace) -> int:
     root = Path(args.project_root).resolve()
     rc = _cmd_doctor(argparse.Namespace(project_root=str(root)))
@@ -263,6 +270,17 @@ def _cmd_release(args: argparse.Namespace) -> int:
     if args.bump:
         print("bump: not implemented in this wave (edit pyproject + CHANGELOG manually)")
         return 2
+    if pypi_mod.pypi_cfg(m) and not pypi_mod.dist_name(m):
+        print("FAIL: manifest pypi: block needs `name`")
+        return 2
+    # pre_release: project-owned asset steps (e.g. demo GIF). Run in the private root; they
+    # must be idempotent and no-op when inputs are unchanged. Commit their output before release.
+    if not args.skip_pre_release:
+        for cmd in _as_cmds(m.raw.get("pre_release")):
+            print(f"pre_release$ {cmd}")
+            if subprocess.run(cmd, shell=True, cwd=str(m.private_root)).returncode != 0:
+                print("FAIL: pre_release command failed")
+                return 1
     try:
         meta = export_tree(m)
     except RuntimeError as exc:
@@ -299,6 +317,13 @@ def _cmd_release(args: argparse.Namespace) -> int:
             cmds=[str(c) for c in m.verify],
             ok=True,
         )
+
+    if pypi_mod.pypi_cfg(m):
+        prc = pypi_mod.build_and_check(m)
+        if prc != 0:
+            print("FAIL: pypi build/check")
+            return 1
+        print("pypi: build + twine check OK")
 
     if args.dry_run:
         print("release: dry-run complete (no commit/push)")
@@ -345,6 +370,11 @@ def _cmd_release(args: argparse.Namespace) -> int:
     )
     subprocess.run(["git", "-C", str(m.public_root), "push", "-f", "origin", tag], check=False)
     print(f"release: pushed {m.public_github} tag {tag}")
+    if pypi_mod.pypi_cfg(m):
+        urc = pypi_mod.upload(m)
+        if urc != 0:
+            print("FAIL: pypi upload (git push already done; re-run release to retry upload)")
+            return 1
     return 0
 
 
@@ -404,6 +434,7 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="ignore verify_stamp.json and always run verify (with --i-mean-it)",
     )
+    rel.add_argument("--skip-pre-release", action="store_true", help="do not run manifest pre_release commands")
     rel.add_argument("--bump", choices=("patch", "minor", "major"))
     rel.add_argument("--force", action="store_true", help="continue despite doctor issues")
 

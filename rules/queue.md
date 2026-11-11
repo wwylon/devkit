@@ -1,12 +1,12 @@
 # Queue Rules (core)
 
-Shared queue discipline. Authoring YAML, preflight, pipelines, `tq` details: [queue-authoring.md](queue-authoring.md) (read when writing a task YAML or planning a pipeline); triage/CLI/wait patterns: [queue-reference.md](queue-reference.md); skill `/queue-task`. Specs (taskqueue repo): `docs/task_standards.md`, `README.md`, `docs/mcp.md`, `docs/WORKER_SETUP.md` — https://github.com/wwylon/taskqueue
+Shared queue discipline. Authoring YAML, preflight, pipelines, `tq` details: [queue-authoring.md](queue-authoring.md) (read when writing a task YAML or planning a pipeline); triage/CLI/wait patterns: [queue-reference.md](queue-reference.md); skill `/queue-task`. Specs (tqdaemon repo): `docs/task_standards.md`, `README.md`, `docs/mcp.md`, `docs/WORKER_SETUP.md` — https://github.com/wwylon/tqdaemon
 
 ### First calls (every session that touches the queue)
 
 1. **Create tasks** = MCP `submit_task` / `submit_matrix` (preferred when MCP is configured), or write YAML under `<project>/experiments/operator_queue/` then `tq sync`. MCP `enqueue_task` / `retry_task` only re-queue *existing* terminal tasks — they cannot create.
 2. Set **`TQ_OPERATOR`** in the environment so `started_by` / `my_tasks` work.
-3. Run **`tq doctor`** (and/or MCP `queue_status`) before overnight leave — confirm home `~/.taskqueue` and port **8765**.
+3. Run **`tq doctor`** (and/or MCP `queue_status`) before overnight leave — confirm home `~/.tqdaemon` and port **8765**.
 4. **After `tq sync` / `tq add` / `tq retry`, start a waiter in the same turn:** `tq wait <project>/<task_id> --timeout 3600` as a background command (Claude Code `run_in_background` wakes you when it exits; `tq` prints this as a `Next:` line). Exit 0 = completed, 1 = failed/stopped → `tq diagnose`, 2 = timeout → start it again. On wake, report the result and update `plan/NOW.md`. MCP `wait_for_task` is the same thing where the tq MCP server is configured; never poll with sleep loops. `notify_url` is only an external webhook.
 5. Prefer **`dispatch: local`** unless you mean remote; `resources.ram_gib` ≈ expected peak RSS; cite **`#run_id`** when talking about a run.
 6. For live CPU/RAM/VRAM/GPU like the UI metrics dialog: MCP **`progress_snapshot`** / **`diagnose`**, or CLI **`tq metrics project/task_id`**.
@@ -16,13 +16,13 @@ Shared queue discipline. Authoring YAML, preflight, pipelines, `tq` details: [qu
 
 * Launch >~2 min jobs as in-session background shells — use operator-queue YAMLs.
 * Invent YAML keys / worker APIs — use `task_standards.md` + README.
-* Invent a parallel taskqueue “dev” tree — use the product `main` checkout only.
-* Patch the taskqueue product tree from another project for new/changed features — send `inbox/taskqueue/` (`type: request` / `contract-change`); see [cross-project-messages.md](cross-project-messages.md).
+* Invent a parallel tqdaemon “dev” tree — use the product `main` checkout only.
+* Patch the tqdaemon product tree from another project for new/changed features — send `inbox/tqdaemon/` (`type: request` / `contract-change`); see [cross-project-messages.md](cross-project-messages.md).
 * Treat `dispatch: remote` as a way to park work with no fleet (it falls back to local when no workers are online).
 * Mass-`tq retry` without triage — see [queue-reference.md](queue-reference.md) hygiene.
 * **`tq unfreeze` / `tq resume` (or UI unblock) a project** unless the owner explicitly asked in this session. Owner **Block project** / `tq freeze` / `tq pause` is intentional — leave it. If you need one task anyway, say so and wait; do not clear the project gate to admit your work.
 * **`tq unhold`** a running task unless the owner asked — cooperative hold is intentional in-process idle (not freeze; not suspend/exit 75).
-* **Run GPU / CUDA work outside the queue on the shared laptop card** (including `* serve`, Ollama model loads, bakeoffs, upscalers, 3D viewers that keep VRAM warm). Taskqueue is the arbiter — see [queue-authoring.md](queue-authoring.md) § GPU.
+* **Run GPU / CUDA work outside the queue on the shared laptop card** (including `* serve`, Ollama model loads, bakeoffs, upscalers, 3D viewers that keep VRAM warm). TqDaemon is the arbiter — see [queue-authoring.md](queue-authoring.md) § GPU.
 
 
 ## Long-running jobs go in the queue
@@ -31,4 +31,4 @@ Any command expected to take more than ~2 minutes must be written as a YAML in t
 
 **Shared GPU:** the house laptop GPU is small (~6 GiB). Declare measured `resources.gpu_vram_gib` (near full card for heavy jobs). Shut idle interactive CUDA serves. Check `tq capacity` / `tq doctor` before starting GPU work. Details: [queue-authoring.md](queue-authoring.md).
 
-Mandatory in every YAML (details in queue-authoring.md): `resume_args` for restartable tools; `wall_clock_cap_sec` for anything that can hang (3600 pilot / 86400 full); explicit production paths for resource directories; the `(XX.X%)` progress contract; one **smoke** tier green before a long run; copy checkpoint/binary fields verbatim from the project's inspect command, never guess. Run `tq validate` + `tq list` after writing the YAML. Cite `#run_id` when reporting a run. Before overnight leave run `tq doctor` (home `~/.taskqueue`, UI `:8765`).
+Mandatory in every YAML (details in queue-authoring.md): `resume_args` for restartable tools; `wall_clock_cap_sec` for anything that can hang (3600 pilot / 86400 full); explicit production paths for resource directories; the `(XX.X%)` progress contract; one **smoke** tier green before a long run; copy checkpoint/binary fields verbatim from the project's inspect command, never guess. Run `tq validate` + `tq list` after writing the YAML. Cite `#run_id` when reporting a run. Before overnight leave run `tq doctor` (home `~/.tqdaemon`, UI `:8765`).

@@ -16,8 +16,8 @@ Author a queue YAML for: $ARGUMENTS
    - Run the inspect command (e.g., `pokerbot_inspect <path>`) and copy fields verbatim.
    - Check `tq list` for the project's known canonical args.
 5. **Specify resource-consuming dirs explicitly** (e.g., `--bucket-dir`, `--grid`). Dev-scale defaults are wrong for production runs.
-6. **GPU isolation:** prefer maximizing `gpu_vram_gib` (full card) so CPU tasks can still run. Use `exclusive: true` only when overlap is unsafe (Ollama/vLLM keep_alive, or owner requires machine-wide exclusivity). See taskqueue `docs/task_standards.md` §3.
-7. **`(X.X%)` contract** — if writing a new CLI that queues tasks, it must emit `(X.X%)` on progress lines (prefer taskqueue `clients/python` or `clients/cpp`).
+6. **GPU isolation:** prefer maximizing `gpu_vram_gib` (full card) so CPU tasks can still run. Use `exclusive: true` only when overlap is unsafe (Ollama/vLLM keep_alive, or owner requires machine-wide exclusivity). See tqdaemon `docs/task_standards.md` §3.
+7. **`(X.X%)` contract** — if writing a new CLI that queues tasks, it must emit `(X.X%)` on progress lines (prefer tqdaemon `clients/python` or `clients/cpp`).
 8. **`resources.ram_gib` is a hint** — set near expected peak RSS, not process ram-caps. Host soft/hard limits gate starts/stops.
 9. **`dispatch: remote` is a prefer-remote hint** — with no online workers the master runs locally; do not use remote to park tasks.
 10. **Queue hygiene** — after overnight / when finishing work on a project, triage that project's `failed` / `unknown` / cap `interrupted` tasks (diagnose → retry / `enabled: false` / `tq remove`); distinguish `[tq.run.cap]` (often just retry) from `[tq.run.nonzero]`. Prefer `tq retry --project P --status failed` over rapid single retries. Ignore `tq.block.*` waits. See `devkit/rules/queue-reference.md` § Queue hygiene / cleanup.
@@ -30,7 +30,7 @@ Author a queue YAML for: $ARGUMENTS
 ## Steps
 
 1. Identify which project this task belongs to (check cwd or ask).
-2. If editing the queue tool itself, work in the **taskqueue** product checkout (`main`, port **8765**).
+2. If editing the queue tool itself, work in the **tqdaemon** product checkout (`main`, port **8765**).
 3. Run `tq doctor` and confirm home / port / protocol before leaving overnight verification.
 4. Look up the relevant CLI's `--help` output to get exact flags.
 5. If the task references a checkpoint, run the inspect command and read the output.

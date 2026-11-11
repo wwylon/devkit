@@ -41,13 +41,13 @@ bare token.
 
 | Project | Status |
 |---------|--------|
-| taskqueue | public — **pilot** for this recipe (worked example) |
+| tqdaemon | public — **pilot** for this recipe (worked example) |
 | upscale | public — next consumer of Mode 1 gaps |
 | devkit | public |
 | llm_localize | planned public |
 | sky | planned public |
 
-**Worked example (cite, do not duplicate trees):** private taskqueue —
+**Worked example (cite, do not duplicate trees):** private tqdaemon —
 `site/`, `docs/assets/`, `llms.txt`, `AGENTS.public.md`,
 `publish.manifest.yaml` allow list, `.github/workflows/pages.yml`.
 
@@ -67,7 +67,9 @@ implement only missing items (do not reinvent a working publish pipeline).
 |-------|-----|
 | `publish.manifest.yaml` exists; `doctor` green | |
 | `site/` + `.github/workflows/pages.yml` present and **allowlisted** | |
-| `docs/assets/hero.*` + `social.*` present | |
+| `docs/assets/hero.*` + `social.*` present; **`docs/assets/demo.gif`** present and current (see [publish.md](publish.md) § Demo GIF) | |
+| `.github/ISSUE_TEMPLATE/`, `PULL_REQUEST_TEMPLATE.md`, `dependabot.yml` present | |
+| README badges are CI / version / PyPI — no zero-count stars badge | |
 | README slim (pitch / install / first win) vs CLI dump | |
 | Public homepage = `https://<owner>.github.io/<repo>/` | |
 | Pages `build_type=workflow` (not branch folder `/site`) | |
@@ -80,6 +82,8 @@ implement only missing items (do not reinvent a working publish pipeline).
 
 - Slim stranger-facing `README.md` — pitch, install, first win; deep refs in `docs/`
 - `docs/assets/hero.jpg` (~1600×900) + `docs/assets/social.jpg` (1280×640); optional `icon.png` (512×512)
+- `docs/assets/demo.gif` — real product UI/CLI, recorded by the project's script (never hand-made); first image in README, absolute `raw.githubusercontent.com` URL so PyPI renders it. `hero`/`social` stay for `site/` and link cards
+- `.github/` issue + PR templates and `dependabot.yml`; a GitHub Release per tag, notes from CHANGELOG
 - Top-level `site/` — `index.html`, `robots.txt`, `sitemap.xml`, visuals (or copies), maintainer `README.md`
 - `.github/workflows/pages.yml` — Actions deploy of `site/` (GitHub branch Source only allows `/` or `/docs`, **not** `/site`)
 - `publish.manifest.yaml` allow entries for `site/`, asset roots, `.github/`, and any new top-level files (see [ALLOWLIST.md](../conventions/public-front-door/ALLOWLIST.md))
@@ -130,7 +134,7 @@ Confirm `https://<owner>.github.io/<repo>/` returns 200 before calling the front
 
 If GSC says **Couldn't fetch** on first try but `curl`/browser get HTTP 200 on the sitemap, wait and **Resubmit** — common on new `github.io` properties.
 
-## Lessons hardened (taskqueue pilot)
+## Lessons hardened (tqdaemon pilot)
 
 | Failure | Rule |
 |---------|------|
@@ -171,11 +175,11 @@ Ask for PNG/JPG, no watermark. Fill in PRODUCT and METAPHOR:
 
 ## Transparent analytics
 
-- **Public:** GitHub stars/forks badges; PyPI download badges after a real distinct package name.
+- **Public:** CI, version and PyPI badges. Stars/forks badges only once the counts are non-trivial (a `0` reads as abandoned).
 - **Maintainer-only:** GitHub Traffic (views/clones ≈ 14 days). Clones ≠ installs.
 - **Forbidden:** silent telemetry / phone-home.
 
-PyPI: if the bare package name is taken, publish under a distinct name (e.g. `tq-taskqueue`); keep console script names as designed.
+PyPI: if the bare package name is taken, publish under a distinct name (e.g. `tqdaemon`); keep console script names as designed.
 
 ## Inbox handoff snippet (do not auto-send)
 
@@ -197,7 +201,7 @@ blocks: none
 
 Follow <portfolio-root>\devkit\rules\public-discoverability.md (Mode 1 gap-check)
 and <portfolio-root>\devkit\rules\publish.md. Copy stubs from
-devkit/conventions/public-front-door/. Worked example: taskqueue site/ +
+devkit/conventions/public-front-door/. Worked example: tqdaemon site/ +
 docs/assets/ + pages.yml. Do not invent branch Pages Source /site.
 ```
 

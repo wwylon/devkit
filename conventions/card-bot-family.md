@@ -18,7 +18,7 @@ Survey template: [card-bot-survey.md](card-bot-survey.md).
 8. `git init -b main` + initial commit (remote only if owner asks).
 9. Update [devkit README](../README.md) consumer table in the same change set as first CLAUDE import.
 10. First NOW task = **L0a survey** for game zero (simplest title). Do not start L1 until survey AC met.
-11. Taskqueue project: register when first long job appears (not at empty scaffold).
+11. TqDaemon project: register when first long job appears (not at empty scaffold).
 12. Language default: C++; build system deferred to L1.
 
 ## Game zero examples

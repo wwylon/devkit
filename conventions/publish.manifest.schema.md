@@ -4,10 +4,10 @@ Per-project file at the **private** repo root. Never exported to the public tree
 
 | Field | Required | Meaning |
 |-------|----------|---------|
-| `project` | yes | Short name (`taskqueue`) |
+| `project` | yes | Short name (`tqdaemon`) |
 | `license` | yes | Must be `MIT` for this wave |
 | `private_root` | yes | Usually `.` |
-| `public_root` | yes | Absolute path, e.g. `<portfolio-root>/public/taskqueue` |
+| `public_root` | yes | Absolute path, e.g. `<portfolio-root>/public/tqdaemon` |
 | `public_github` | yes | `owner/repo` for the public face |
 | `private_github` | yes | `owner/repo-private` |
 | `default_branch` | no | `main` or `master` |
@@ -20,6 +20,8 @@ Per-project file at the **private** repo root. Never exported to the public tree
 | `version_from` | no | Default `pyproject.toml` |
 | `changelog` | no | Default `CHANGELOG.md` |
 | `export_commit_template` | no | Supports `{project}` `{version}` `{private_sha}` |
+| `pre_release` | no | Shell commands run in the **private** root before export (e.g. demo-GIF recorder). Idempotent; commit their output first |
+| `pypi` | no | `{name, build?}` — build + `twine check` in `public_root` on every release, upload only with `--i-mean-it` (token via `tools/secret.py`) |
 
 House deny and scan defaults: `devkit/tools/publish/house_defaults.py`.
 

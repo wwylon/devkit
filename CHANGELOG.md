@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-11-11
+
+### Added
+
+- `tools/secret.py` and a gitignored, export-denied `.secrets/` slot for shared tokens.
+- Publish CLI: `pre_release` hooks and PyPI build/check/upload.
+- `rules/project-design.md`, `conventions/web-launcher.md`, `tools/ports.py`.
+
+### Changed
+
+- Product `taskqueue` is now `tqdaemon` in rules and tools.
+
 ## [0.1.1] - 2026-11-11
 
 ### Added

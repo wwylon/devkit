@@ -1,7 +1,7 @@
 # Queue Reference
 
 Operational reference — triage, CLI, wait patterns. Read when running or debugging queue tasks.
-Authoring rules: `devkit/rules/queue.md`. Standards: `taskqueue/docs/task_standards.md`.
+Authoring rules: `devkit/rules/queue.md`. Standards: `tqdaemon/docs/task_standards.md`.
 
 ## Waiting on a queue task
 
@@ -102,7 +102,7 @@ Projects / workers
 
 **Hygiene:** `tq.block.frozen` / `tq.block.paused` / `tq.block.deps` are **waits**, not failures — do not mass-retry them as if failed. Do not `tq unfreeze` / `tq resume` to “fix” a blocked project unless the owner asked.
 
-**Remote worker triage:** `tq worker list` · `tq capacity` · `tq diagnose <project/task_id>`. Architecture: `devkit/rules/master-worker.md` · taskqueue `docs/master_worker.md`. Task `unknown` after lease loss → manual `tq retry` (non-idempotent semantics).
+**Remote worker triage:** `tq worker list` · `tq capacity` · `tq diagnose <project/task_id>`. Architecture: `devkit/rules/master-worker.md` · tqdaemon `docs/master_worker.md`. Task `unknown` after lease loss → manual `tq retry` (non-idempotent semantics).
 
 ### MCP tools (`tq mcp`)
 
@@ -134,7 +134,7 @@ Queue web UI: `http://127.0.0.1:8765`. Locales EN/PL/ZH/AR. Queue page: status �
 
 ## Project queue directory
 
-Each project's queue YAMLs live in `experiments/operator_queue/` relative to the project root (default; set in `~/.taskqueue/projects.yaml` if different). Prefer `tq sync` after writing YAML (watchdog can pick up sooner; ~60 s is the fallback interval). Drop a YAML there with `enabled: true`; the daemon admits it — no separate “owner start” step unless the task is intentionally `enabled: false` or the project is frozen/paused.
+Each project's queue YAMLs live in `experiments/operator_queue/` relative to the project root (default; set in `~/.tqdaemon/projects.yaml` if different). Prefer `tq sync` after writing YAML (watchdog can pick up sooner; ~60 s is the fallback interval). Drop a YAML there with `enabled: true`; the daemon admits it — no separate “owner start” step unless the task is intentionally `enabled: false` or the project is frozen/paused.
 
 ## Large mmap training tasks
 

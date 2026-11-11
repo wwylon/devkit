@@ -37,6 +37,21 @@ python <portfolio-root>/devkit/tools/publish/cli.py --project-root <path> releas
 
 Long verify (>~2 min): operator-queue YAML calling `publish verify` / `release --dry-run`, then `tq wait` — not an in-session sleep loop. See [queue.md](queue.md).
 
+## Demo GIF (every public project with a UI or CLI)
+
+- The project owns a recorder script (e.g. `scripts/record_demo.py`) that starts the product on an **isolated** state home + free port with **synthetic** demo data, drives it with a headless browser or terminal capture, and writes `docs/assets/demo.gif` plus a `demo.gif.sha` of the inputs it depends on (UI sources, demo fixtures).
+- Demo data must be project-relative and fictional: never record against the live instance (private project names, paths, hosts leak).
+- Recorder rules: fresh state home each run; wait on elements, not sleeps; drop leading "loading" frames; stop the product in `finally` through its own stop command (never kill processes by command-line match); keep the GIF under ~2 MB.
+- Manifest `pre_release:` lists the recorder command. It runs in the **private** root before export and only re-records when the `.sha` is stale. Commit the GIF in private **before** `release --dry-run` (clean-tree rule above). Recording >2 min goes through an operator-queue YAML + `tq wait`.
+- README embeds it above the fold as an absolute `https://raw.githubusercontent.com/<owner>/<repo>/<branch>/docs/assets/demo.gif` URL.
+
+## PyPI
+
+- Manifest `pypi:` block (`name`, optional `build`). The bare project name may be taken: check `https://pypi.org/pypi/<name>/json` (404 = free) and pick a distinct dist name; import name and console scripts stay as designed. Confirm the name with the user before the first upload — it is permanent.
+- Token: `devkit/.secrets/pypi_token` via `python <portfolio-root>/devkit/tools/secret.py run pypi -- ...`; never print or copy it.
+- `release` builds in `public_root` (so only allowlisted files ship), runs `twine check` as part of dry-run, and uploads **only** with `--i-mean-it`, after the push, skipping a version PyPI already has.
+- Public README images must be absolute URLs (PyPI does not resolve relative paths).
+
 ## Agent checklist
 
 1. Manifest exists (`publish.manifest.yaml`); else `init-manifest` and stop for human allow/deny fill-in.
@@ -45,6 +60,7 @@ Long verify (>~2 min): operator-queue YAML calling `publish verify` / `release -
 4. CHANGELOG `[Unreleased]` has stranger-facing notes; SemVer in `pyproject.toml`.
 5. Prefer the private local gate (`ci.ps1` or the project test command; no GitHub CI) green before publish so public verify rarely fails late.
 6. **Clean working tree** (no unrelated dirty files that should not ship).
+6b. Demo GIF current (`pre_release`), committed in private.
 7. `release --dry-run` (queue it if long); fix scan/verify failures in **private** (re-export), never hand-edit `public\` features.
 8. Report; **ask before** `--i-mean-it` (stamp reuse is OK; still needs explicit user OK to push).
 9. After push: [public-discoverability.md](public-discoverability.md) Mode 1 phases **E–F** (or Mode 2 post-push if metadata/`site/` changed) — Pages Actions, homepage, Social reminder, GSC. PR comments if ingesting.

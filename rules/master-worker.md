@@ -2,7 +2,7 @@
 
 Short rules for research-project agents authoring remote YAML or triaging worker runs.
 
-Canonical docs in the active taskqueue checkout:
+Canonical docs in the active tqdaemon checkout:
 - **Configure** (simple steps first): `docs/WORKER_SETUP.md` → section **Quick start — step by step**
 - **Architecture** (sync, disconnect, logs): `docs/master_worker.md`
 
@@ -45,7 +45,7 @@ View logs before task completes: `tq logs`, web UI, MCP `log_tail`.
 
 ## Do not
 
-- Point a WIP experimental worker at prod master (`:8765` / default `~/.taskqueue`).
+- Point a WIP experimental worker at prod master (`:8765` / default `~/.tqdaemon`).
 - Assume logs appear only after finalize on remote runs.
 - Leave `dispatch: remote` overnight without checking `tq worker list`.
 
@@ -79,4 +79,4 @@ Triage: `tq diagnose <project/task_id>` · MCP `capacity` / `diagnose`.
 
 - [queue.md](queue.md) — general queue discipline
 - [queue-reference.md](queue-reference.md) — CLI quick reference
-- taskqueue `docs/task_standards.md` §4 — full field reference
+- tqdaemon `docs/task_standards.md` §4 — full field reference

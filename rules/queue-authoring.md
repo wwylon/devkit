@@ -4,18 +4,18 @@ Shared queue discipline for all antigravity projects. These rules apply whenever
 
 ## Official Standards & Reference Docs
 
-For detailed technical specifications on writing task scripts and configuring them under the taskqueue system, see (https://github.com/wwylon/taskqueue or your local checkout):
-* **[Task Standards](https://github.com/wwylon/taskqueue/blob/main/docs/task_standards.md)** — Progress `(XX.X%)` contract, checkpoint/`resume_args`, resources, YAML fields, dispatch/workers, `notify_url`.
-* **[MCP server](https://github.com/wwylon/taskqueue/blob/main/docs/mcp.md)** — `tq mcp` tools including `drain_notifications`, `progress_snapshot`, `diagnose`.
-* **[Project README](https://github.com/wwylon/taskqueue/blob/main/README.md)** — state home, CLI (`tq metrics`, `tq diagnose`, …).
-* **[Master–worker configuration](https://github.com/wwylon/taskqueue/blob/main/docs/WORKER_SETUP.md)** — bind, auth, `worker.yaml`, setup checklist.
+For detailed technical specifications on writing task scripts and configuring them under the tqdaemon system, see (https://github.com/wwylon/tqdaemon or your local checkout):
+* **[Task Standards](https://github.com/wwylon/tqdaemon/blob/main/docs/task_standards.md)** — Progress `(XX.X%)` contract, checkpoint/`resume_args`, resources, YAML fields, dispatch/workers, `notify_url`.
+* **[MCP server](https://github.com/wwylon/tqdaemon/blob/main/docs/mcp.md)** — `tq mcp` tools including `drain_notifications`, `progress_snapshot`, `diagnose`.
+* **[Project README](https://github.com/wwylon/tqdaemon/blob/main/README.md)** — state home, CLI (`tq metrics`, `tq diagnose`, …).
+* **[Master–worker configuration](https://github.com/wwylon/tqdaemon/blob/main/docs/WORKER_SETUP.md)** — bind, auth, `worker.yaml`, setup checklist.
 * **[Master–worker architecture](master-worker.md)** — dispatch, sync, disconnect, logs — for remote YAML and triage.
 
 ### First calls (every session that touches the queue)
 
 1. **Create tasks** = MCP `submit_task` / `submit_matrix` (preferred when MCP is configured), or write YAML under `<project>/experiments/operator_queue/` then `tq sync`. MCP `enqueue_task` / `retry_task` only re-queue *existing* terminal tasks — they cannot create.
 2. Set **`TQ_OPERATOR`** in the environment so `started_by` / `my_tasks` work.
-3. Run **`tq doctor`** (and/or MCP `queue_status`) before overnight leave — confirm home `~/.taskqueue` and port **8765**.
+3. Run **`tq doctor`** (and/or MCP `queue_status`) before overnight leave — confirm home `~/.tqdaemon` and port **8765**.
 4. **After `tq sync` / `tq add` / `tq retry`, start a waiter in the same turn:** `tq wait <project>/<task_id> --timeout 3600` as a background command (Claude Code `run_in_background` wakes you when it exits; `tq` prints this as a `Next:` line). Exit 0 = completed, 1 = failed/stopped → `tq diagnose`, 2 = timeout → start it again. On wake, report the result and update `plan/NOW.md`. MCP `wait_for_task` is the same thing where the tq MCP server is configured; never poll with sleep loops. `notify_url` is only an external webhook.
 5. Prefer **`dispatch: local`** unless you mean remote; `resources.ram_gib` ≈ expected peak RSS; cite **`#run_id`** when talking about a run.
 6. For live CPU/RAM/VRAM/GPU like the UI metrics dialog: MCP **`progress_snapshot`** / **`diagnose`**, or CLI **`tq metrics project/task_id`**.
@@ -25,7 +25,7 @@ For detailed technical specifications on writing task scripts and configuring th
 
 * Launch >~2 min jobs as in-session background shells — use operator-queue YAMLs.
 * Invent YAML keys / worker APIs — use `task_standards.md` + README.
-* Invent a parallel taskqueue “dev” tree — use the product `main` checkout only.
+* Invent a parallel tqdaemon “dev” tree — use the product `main` checkout only.
 * Treat `dispatch: remote` as a way to park work with no fleet (it falls back to local when no workers are online).
 * Mass-`tq retry` without triage — see [queue-reference.md](queue-reference.md) hygiene.
 * Run GPU / CUDA work outside the queue on the shared laptop card (serves, Ollama loads, bakeoffs) — see § GPU below.
@@ -34,8 +34,8 @@ For detailed technical specifications on writing task scripts and configuring th
 
 | | Default |
 |--|---------|
-| Tree | `<portfolio-root>\taskqueue` @ `main` |
-| Home | `~/.taskqueue` |
+| Tree | `<portfolio-root>\tqdaemon` @ `main` |
+| Home | `~/.tqdaemon` |
 | UI | `:8765` |
 
 Before overnight leave or queue edits, run `tq doctor` and confirm home, port, and `protocol`.
@@ -67,7 +67,7 @@ Run the project's inspect command and copy the relevant fields verbatim. Never g
 Set `resume_args` in the YAML for any task whose tool supports `--resume`. When a task is retried the daemon uses `resume_args` automatically; without it the task restarts from scratch. If a tool does not support `--resume`, note this in the YAML description.
 
 **`wall_clock_cap_sec` is mandatory for any task that can deadlock or hang:**
-Subgame solving, arena runs, and any process that reads from a network or socket can deadlock silently. Without a cap the process runs forever. Use 3600 for pilots, 86400 for full runs. There is no good reason to omit this. Cap kills land as `interrupted` / `tq.run.cap` (not `failed` / `tq.run.nonzero`). Long checkpointable jobs that regularly hit the cap should set `auto_retry_on_cap: true` + `execution_semantics: checkpointable` (and `resume_args`) so the daemon re-queues without babysitting — see taskqueue `docs/task_standards.md`.
+Subgame solving, arena runs, and any process that reads from a network or socket can deadlock silently. Without a cap the process runs forever. Use 3600 for pilots, 86400 for full runs. There is no good reason to omit this. Cap kills land as `interrupted` / `tq.run.cap` (not `failed` / `tq.run.nonzero`). Long checkpointable jobs that regularly hit the cap should set `auto_retry_on_cap: true` + `execution_semantics: checkpointable` (and `resume_args`) so the daemon re-queues without babysitting — see tqdaemon `docs/task_standards.md`.
 
 **Resume-aware caps (INF25-02):** for shard/relabel gen, size `wall_clock_cap_sec` from
 remaining work × measured rate + 20%. Prefer auto-retry on `tq.run.cap` when
@@ -85,19 +85,19 @@ Two tasks rebuilding the same binary will overwrite it mid-run. Use the project'
 Never rely on tool defaults for bucket-dir, grid, or similar multi-scale parameters. The default often points at a dev-scale fixture. Specify the production path explicitly in the YAML args.
 
 **`(X.X%)` progress contract:**
-The daemon parses `(XX.X%)` from subprocess output and displays progress + ETA. Any CLI that runs as a queue task emits that form. Do not change the format. Helpers, checkpoint cadence, and suspend handling are in taskqueue `docs/task_standards.md`.
+The daemon parses `(XX.X%)` from subprocess output and displays progress + ETA. Any CLI that runs as a queue task emits that form. Do not change the format. Helpers, checkpoint cadence, and suspend handling are in tqdaemon `docs/task_standards.md`.
 
 **`dispatch: remote` is a hint:** Prefer an online remote worker; if none are online, the master runs the task locally (still subject to `requires`). Do not use `dispatch: remote` to park work when you have no remote fleet — use `local` or wait for workers.
 
 **`resources.ram_gib` is a hint:** Soft host gate `ram_limit_pct` blocks new starts when the machine is over soft used%; hard gate `ram_hard_limit_pct` stops the highest-RSS local queue task (`status=stopped`, `tq.stop.ram`). Set `ram_gib` near expected peak RSS (not process ram-caps). The scheduler may auto-restart `stopped` tasks when soft clears unless last peak would hit hard again (`tq force` bypasses).
 
-**GPU — taskqueue is the arbiter on the shared card:**
+**GPU — tqdaemon is the arbiter on the shared card:**
 1. **All GPU work goes through the queue** (YAML / MCP submit), including long jobs **and** persistent processes that keep VRAM warm (`* serve`, upscalers, 3D viewers, Ollama model loads). Do not leave those running idle while other projects need the GPU.
 2. Declare measured **`resources.gpu_vram_gib`** (never invent a silent `gpu:` key). Prefer a near-full-card value so CPU-only work can still run; use **`exclusive: true`** mainly when a runtime keeps weights loaded across tasks (Ollama/vLLM `keep_alive`) and overlap is unsafe. Named **`locks:`** (e.g. `ollama`) for mutual exclusion of the same runtime.
-3. Before starting GPU work: `tq capacity` / `tq doctor` (VRAM free + foreign `gpu_processes`). Interactive one-offs: shut the serve when done; prefer `tq gpu run` / leases once that ships (taskqueue T-208).
+3. Before starting GPU work: `tq capacity` / `tq doctor` (VRAM free + foreign `gpu_processes`). Interactive one-offs: shut the serve when done; prefer `tq gpu run` / leases once that ships (tqdaemon T-208).
 4. Host is ~6 GiB: two ~5 GiB declarations must not run together — if they do, file/fix admission, do not “just launch locally”.
 
-Details: taskqueue `docs/task_standards.md` §3, `docs/scheduler.md`.
+Details: tqdaemon `docs/task_standards.md` §3, `docs/scheduler.md`.
 
 **`group` field for task sets:**
 Use the `group:` YAML field to cluster related tasks for `tq group list|stop|retry` and the web UI group filter. Convention: `<project>/<phase>`. Groups are an operational label — they do **not** change admission priority. Prefer `suite:` when you need enable/disable/retry of a labeled batch via `tq suite`. Both `group retry` and `suite retry` re-queue **completed** members.
@@ -133,7 +133,7 @@ Once a task starts (or after it finishes), the dashboard and history show a nume
 If a task is interrupted (power loss, OOM, manual stop) or RAM-stopped, the next start/`tq retry` should resume from the last checkpoint when `resume_args` exist. Design tasks and their tools to support this.
 
 **Opt-in end-of-task notify (`notify_url`):**
-Agents do not need this to wait (use `wait_for_task` / `tq wait`). When the owner wants a real notification when the task ends, set `notify_url` to a loopback HTTP(S) webhook in the YAML (see task_standards). Omit otherwise. The master appends every terminal event to `{TASKQUEUE_HOME}/notify.jsonl` regardless of `notify_url`. Remote webhook hosts need `tq config set notify_allow_remote=1`.
+Agents do not need this to wait (use `wait_for_task` / `tq wait`). When the owner wants a real notification when the task ends, set `notify_url` to a loopback HTTP(S) webhook in the YAML (see task_standards). Omit otherwise. The master appends every terminal event to `{TQDAEMON_HOME}/notify.jsonl` regardless of `notify_url`. Remote webhook hosts need `tq config set notify_allow_remote=1`.
 
 ## Triage / CLI / wait patterns
 

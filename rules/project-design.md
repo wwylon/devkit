@@ -20,10 +20,10 @@ plus why. Project-specific design stays in the project; this is only what holds 
 ## Behaviour
 
 - **Prerequisite check before work:** a missing build, dependency or data file gives one line saying what to run, exit 1, no traceback.
-- **Hermetic tests:** `pytest`/`ctest` run without network, daemons, the real taskqueue or another project's files; set the env flags that disable them.
+- **Hermetic tests:** `pytest`/`ctest` run without network, daemons, the real tqdaemon or another project's files; set the env flags that disable them.
 - **No GitHub CI.** We have no Actions tokens and the runs always fail. Do not add `.github/workflows`, do not wait on, poll or fix GitHub checks (`gh run`, `gh pr checks`). The gate is local: the project's test command or `ci.ps1` that you run before committing or publishing. "CI" in a rule means that local gate.
 - **Every number shown carries its source** (a path to the evidence); a missing or stale source shows as a gap, never a guess.
-- No secrets, tokens or personal paths in the repo; configuration by environment variable with a documented default.
+- No secrets, tokens or personal paths in the repo; configuration by environment variable with a documented default. Shared tokens (e.g. PyPI) live in `<portfolio-root>/devkit/.secrets/` (gitignored, never exported): use `python <portfolio-root>/devkit/tools/secret.py run pypi -- twine upload dist/*`; never print or copy the value.
 
 ## Boundaries
 

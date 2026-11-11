@@ -70,6 +70,6 @@ One primary title per family NOW; ≤2–3 active L1+ programmes across the port
 ## Other hard rules
 
 - Read `plan/NOW.md` first; one task per session; check `inbox/<repo>/`.
-- Long jobs → that project’s `experiments/operator_queue/` + taskqueue project id = repo name.
+- Long jobs → that project’s `experiments/operator_queue/` + tqdaemon project id = repo name.
 - Cross-repo: inbox only; no silent edits to another family.
 - Engine purity: [engine-purity.md](engine-purity.md) — classify human / heuristic / search / learned / mixture.

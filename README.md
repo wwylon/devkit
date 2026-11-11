@@ -1,7 +1,7 @@
 # devkit
 
 ![license MIT](https://img.shields.io/badge/license-MIT-blue)
-![version](https://img.shields.io/badge/version-0.1.1-informational)
+![version](https://img.shields.io/badge/version-0.1.2-informational)
 ![platform](https://img.shields.io/badge/for-Claude%20Code-orange)
 
 Shared agent rules, conventions, and Claude Code skills for multi-project workflows
@@ -36,7 +36,7 @@ flowchart LR
 | `plugins/antigravity/` | Claude Code plugin: `/optimize`, `/queue-task`, `/publish`, `/handoff`, `/new-problem`, `/benchmark`, … |
 | `tools/publish/` | Allowlist export → public GitHub mirrors (scan / verify / gated push) |
 
-Companion OSS product: [taskqueue](https://github.com/wwylon/taskqueue) (daemon, `tq` CLI, web UI, MCP).
+Companion OSS product: [tqdaemon](https://github.com/wwylon/tqdaemon) (daemon, `tq` CLI, web UI, MCP).
 
 ## Quick start (worked example)
 
@@ -70,7 +70,7 @@ Consumers should pin a release rather than track `master`:
 
 ```text
 git clone https://github.com/wwylon/devkit.git
-git -C devkit checkout v0.1.1
+git -C devkit checkout v0.1.2
 ```
 
 Versions follow [Semantic Versioning](https://semver.org/); changes are listed in
