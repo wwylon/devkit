@@ -8,4 +8,6 @@ python D:/antigravity/devkit/tools/publish/cli.py --project-root D:/antigravity/
 python D:/antigravity/devkit/tools/publish/cli.py --project-root D:/antigravity/taskqueue release --i-mean-it
 ```
 
+Export preserves `.venv` / pytest / ruff caches across wipe, runs `scripts/build_docs.py` post-rewrite when present, and writes `verify_stamp.json` so `--i-mean-it` can skip a second identical verify (`--force-verify` to ignore).
+
 See `../../rules/publish.md` and `../../conventions/publish.manifest.schema.md`.

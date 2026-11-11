@@ -2,8 +2,8 @@
 
 Status legend: **doing** | todo | waiting | done | parked | postponed
 
-Priority and blockers live in [`NOW.md`](NOW.md) — do not duplicate the Next table here.
-Completed milestone acceptance prose → [`archive/`](archive/).
+Priority and blockers live in `NOW.md` — do not duplicate the Next table here.
+Completed milestone acceptance prose → `archive/`.
 
 ## Active
 
@@ -21,7 +21,7 @@ One-line intent / acceptance pointer.
 
 ## Ideas backlog
 
-Low-priority ideas not yet scheduled. Prefer [`STATUS.md`](STATUS.md) for research portfolios.
+Low-priority ideas not yet scheduled. Prefer `STATUS.md` for research portfolios.
 See also `<portfolio-root>\devkit\ideas\game-bot-theory.md`.
 
 - [ ] <idea> — <one line rationale>

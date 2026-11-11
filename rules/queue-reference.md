@@ -100,7 +100,7 @@ Projects / workers
   tq config get|set k=v… | tq prune [--apply] | tq mcp
 ```
 
-**Hygiene:** `tq.block.frozen` / `tq.block.paused` / `tq.block.deps` are **waits**, not failures — do not mass-retry them as if failed.
+**Hygiene:** `tq.block.frozen` / `tq.block.paused` / `tq.block.deps` are **waits**, not failures — do not mass-retry them as if failed. Do not `tq unfreeze` / `tq resume` to “fix” a blocked project unless the owner asked.
 
 **Remote worker triage:** `tq worker list` · `tq capacity` · `tq diagnose <project/task_id>`. Architecture: `devkit/rules/master-worker.md` · taskqueue `docs/master_worker.md`. Task `unknown` after lease loss → manual `tq retry` (non-idempotent semantics).
 

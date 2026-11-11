@@ -17,12 +17,18 @@ Shared queue discipline. Authoring YAML, preflight, pipelines, `tq` details: [qu
 * Launch >~2 min jobs as in-session background shells — use operator-queue YAMLs.
 * Invent YAML keys / worker APIs — use `task_standards.md` + README.
 * Invent a parallel taskqueue “dev” tree — use the product `main` checkout only.
+* Patch the taskqueue product tree from another project for new/changed features — send `inbox/taskqueue/` (`type: request` / `contract-change`); see [cross-project-messages.md](cross-project-messages.md).
 * Treat `dispatch: remote` as a way to park work with no fleet (it falls back to local when no workers are online).
 * Mass-`tq retry` without triage — see [queue-reference.md](queue-reference.md) hygiene.
+* **`tq unfreeze` / `tq resume` (or UI unblock) a project** unless the owner explicitly asked in this session. Owner **Block project** / `tq freeze` / `tq pause` is intentional — leave it. If you need one task anyway, say so and wait; do not clear the project gate to admit your work.
+* **`tq unhold`** a running task unless the owner asked — cooperative hold is intentional in-process idle (not freeze; not suspend/exit 75).
+* **Run GPU / CUDA work outside the queue on the shared laptop card** (including `* serve`, Ollama model loads, bakeoffs, upscalers, 3D viewers that keep VRAM warm). Taskqueue is the arbiter — see [queue-authoring.md](queue-authoring.md) § GPU.
 
 
 ## Long-running jobs go in the queue
 
 Any command expected to take more than ~2 minutes must be written as a YAML in the project's `experiments/operator_queue/` directory, then `tq sync` (and `tq validate` before overnight leave). With `enabled: true`, the daemon admits the task — there is no separate “owner start” step. Leave `enabled: false` (or use `tq freeze` / `tq pause`) only when the owner must gate admission. Never launch these as background shell tasks inside an agent session (a background `tq wait` watcher is fine — it only waits). This keeps long jobs restartable, logged, and off the session context.
+
+**Shared GPU:** the house laptop GPU is small (~6 GiB). Declare measured `resources.gpu_vram_gib` (near full card for heavy jobs). Shut idle interactive CUDA serves. Check `tq capacity` / `tq doctor` before starting GPU work. Details: [queue-authoring.md](queue-authoring.md).
 
 Mandatory in every YAML (details in queue-authoring.md): `resume_args` for restartable tools; `wall_clock_cap_sec` for anything that can hang (3600 pilot / 86400 full); explicit production paths for resource directories; the `(XX.X%)` progress contract; one **smoke** tier green before a long run; copy checkpoint/binary fields verbatim from the project's inspect command, never guess. Run `tq validate` + `tq list` after writing the YAML. Cite `#run_id` when reporting a run. Before overnight leave run `tq doctor` (home `~/.taskqueue`, UI `:8765`).

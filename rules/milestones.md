@@ -5,7 +5,7 @@ Shared milestone discipline for all antigravity projects. These rules apply when
 ## What a milestone is
 
 A milestone is a named checkpoint in the project roadmap (M0, M1, … or equivalent). Each milestone has:
-- A set of tasks (in `tasks.md` or equivalent) whose acceptance criteria must all be **checked in CI**.
+- A set of tasks (in `tasks.md` or equivalent) whose acceptance criteria must all be **checked by the local gate** (tests or scripts you run).
 - An optional **gate condition** (operator compute job, human sign-off, external measurement) that must complete before the milestone closes.
 - A one-line entry in the **CLAUDE.md milestone line** reflecting its current state.
 

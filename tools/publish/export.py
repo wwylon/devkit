@@ -6,13 +6,22 @@ import fnmatch
 import json
 import shutil
 import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 from .house_defaults import HOUSE_PATH_REWRITES, TEXT_REWRITE_SUFFIXES
 from .manifest import PublishManifest, Overlay, read_version
 
-PRESERVE_NAMES = {".git", ".publish"}
+# Keep .git / publish state and warm verify caches across wipe-export.
+PRESERVE_NAMES = {
+    ".git",
+    ".publish",
+    ".venv",
+    "venv",
+    ".pytest_cache",
+    ".ruff_cache",
+}
 
 # Written into every public tree so verify artifacts never get committed.
 PUBLIC_GITIGNORE = """\
@@ -36,13 +45,10 @@ build/
 !.env.example
 """
 
-# Directory basenames removed from the working tree after verify, before git add.
+# Nested debris scrubbed before git add. Top-level .venv / pytest / ruff caches
+# stay on disk (PRESERVE_NAMES + gitignore) so the next release keeps a warm sync.
 SCRUB_DIR_NAMES = {
     "__pycache__",
-    ".pytest_cache",
-    ".ruff_cache",
-    ".venv",
-    "venv",
 }
 
 
@@ -191,6 +197,22 @@ def _private_sha(private_root: Path) -> str:
         return "unknown"
 
 
+def _run_post_export_docs(public_root: Path) -> None:
+    """Rebuild help-bundle after path rewrites when the project has build_docs.py."""
+    script = public_root / "scripts" / "build_docs.py"
+    if not script.is_file():
+        return
+    print(f"$ {sys.executable} scripts/build_docs.py  (post-export)")
+    r = subprocess.run([sys.executable, str(script)], cwd=str(public_root))
+    if r.returncode != 0:
+        raise RuntimeError(f"post-export build_docs failed (exit {r.returncode})")
+
+
+def export_id_for(private_sha: str, file_count: int) -> str:
+    """Stable id for stamp matching (same commit + same export size → same id)."""
+    return f"{private_sha}:{int(file_count)}"
+
+
 def export_tree(m: PublishManifest, *, dry_clear: bool = True) -> dict:
     """Export allowlist + overlays into public_root. Returns status dict."""
     m.public_root.mkdir(parents=True, exist_ok=True)
@@ -215,12 +237,17 @@ def export_tree(m: PublishManifest, *, dry_clear: bool = True) -> dict:
     gitignore.write_text(PUBLIC_GITIGNORE, encoding="utf-8")
     copied.append(".gitignore")
 
+    _run_post_export_docs(m.public_root)
+
+    private_sha = _private_sha(m.private_root)
+    file_count = len(copied)
     meta = {
         "project": m.project,
         "version": read_version(m),
-        "private_sha": _private_sha(m.private_root),
+        "private_sha": private_sha,
         "exported_at": datetime.now(timezone.utc).isoformat(),
-        "file_count": len(copied),
+        "file_count": file_count,
+        "export_id": export_id_for(private_sha, file_count),
         "files": copied,
     }
     state_dir = m.public_root / ".publish"

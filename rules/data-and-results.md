@@ -11,5 +11,6 @@ Applies when optimizing, running accelerated kernels, or reporting results. Deta
 - **Flaw found -> sweep siblings** in the same session; classify against [bug-patterns.md](bug-patterns.md) (PAT id) and record `PAT-NNN sweep: checked X, Y: clean`.
 - **Benchmarks:** record every reduced dimension; median of 5+; same-machine ratio, not absolute time; record in `optimization_log.md`; stale numbers are debt.
 - **Fixed-size samples:** an aggregate is valid only when finished count equals declared size; worse beyond a stated epsilon is a regression; crash/illegal output fails the gate.
+- **Correlated rows:** rows that share a seed or case (rotated roles, duplicate pairs, paired A/B) are not independent; compute the interval over the shared unit, not per row.
 - Changing a binary file format/contract: update `docs/data_contracts.md` in the same commit; readers validate format params at startup.
 - Experiment ledger index: see `rules/plan-structure.md`. Long gates are marked slow and stay out of the default suite.

@@ -7,7 +7,7 @@ Completed milestone **acceptance criteria** and long task narratives. Live sched
 | Active / todo tasks | `../tasks.md` |
 | What’s next | `../NOW.md` |
 | Idea decisions | `../STATUS.md` |
-| Unit / regression tests | project `tests/` + CI |
+| Unit / regression tests | project `tests/` + local gate |
 | Idea A/B experiment runs | `experiments/ledger/` + experiment index |
 | Chronological bench write-ups | `../optimization_log.md` |
 

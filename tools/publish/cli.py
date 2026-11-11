@@ -14,6 +14,7 @@ import os
 import shutil
 import subprocess
 import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 _PKG = Path(__file__).resolve().parent
@@ -25,6 +26,7 @@ from publish.manifest import load_manifest, read_version  # noqa: E402
 from publish.scan import scan_tree  # noqa: E402
 
 TEMPLATE = Path(__file__).resolve().parents[2] / "conventions" / "publish.manifest.template.yaml"
+VERIFY_STAMP_MAX_AGE = timedelta(hours=2)
 
 
 def _cmd_doctor(args: argparse.Namespace) -> int:
@@ -99,6 +101,74 @@ def _cmd_scan(args: argparse.Namespace) -> int:
     return 0 if result["ok"] else 1
 
 
+def _publish_state_dir(public_root: Path) -> Path:
+    d = public_root / ".publish"
+    d.mkdir(exist_ok=True)
+    return d
+
+
+def _write_verify_stamp(
+    public_root: Path,
+    *,
+    project: str,
+    private_sha: str,
+    export_id: str,
+    cmds: list[str],
+    ok: bool,
+) -> None:
+    stamp = {
+        "project": project,
+        "ok": ok,
+        "private_sha": private_sha,
+        "export_id": export_id,
+        "at": datetime.now(timezone.utc).isoformat(),
+        "cmds": cmds,
+    }
+    (_publish_state_dir(public_root) / "verify_stamp.json").write_text(
+        json.dumps(stamp, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
+def _stamp_allows_skip(
+    public_root: Path,
+    *,
+    private_sha: str,
+    export_id: str,
+    force_verify: bool,
+) -> bool:
+    """True when a prior green verify covers this private commit + export id."""
+    if force_verify:
+        return False
+    path = public_root / ".publish" / "verify_stamp.json"
+    if not path.is_file():
+        return False
+    try:
+        stamp = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    if not stamp.get("ok"):
+        return False
+    if stamp.get("private_sha") != private_sha or stamp.get("export_id") != export_id:
+        return False
+    at_raw = stamp.get("at") or ""
+    try:
+        at = datetime.fromisoformat(at_raw.replace("Z", "+00:00"))
+        if at.tzinfo is None:
+            at = at.replace(tzinfo=timezone.utc)
+    except ValueError:
+        return False
+    age = datetime.now(timezone.utc) - at
+    if age > VERIFY_STAMP_MAX_AGE or age < timedelta(0):
+        print(f"verify stamp stale (age={age}); re-running verify")
+        return False
+    print(
+        f"verify: skipping (stamp ok private={private_sha} export_id={export_id} "
+        f"age={int(age.total_seconds())}s)"
+    )
+    return True
+
+
 def _cmd_verify(args: argparse.Namespace) -> int:
     m = load_manifest(project_root=Path(args.project_root).resolve())
     if not m.verify:
@@ -117,16 +187,35 @@ def _cmd_verify(args: argparse.Namespace) -> int:
             failed += 1
             if not args.keep_going:
                 break
+    ok = failed == 0
     state = {
         "project": m.project,
-        "ok": failed == 0,
+        "ok": ok,
         "results": results,
     }
-    state_dir = m.public_root / ".publish"
-    state_dir.mkdir(exist_ok=True)
+    state_dir = _publish_state_dir(m.public_root)
     (state_dir / "last_verify.json").write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
-    print("verify: OK" if failed == 0 else f"verify: FAIL ({failed})")
-    return 0 if failed == 0 else 1
+    # Stamp when we know export meta (release passes it); standalone verify reads last_export.
+    export_meta: dict = {}
+    last_export = state_dir / "last_export.json"
+    if last_export.is_file():
+        try:
+            export_meta = json.loads(last_export.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            export_meta = {}
+    private_sha = str(export_meta.get("private_sha") or "")
+    export_id = str(export_meta.get("export_id") or "")
+    if private_sha and export_id:
+        _write_verify_stamp(
+            m.public_root,
+            project=m.project,
+            private_sha=private_sha,
+            export_id=export_id,
+            cmds=[str(c) for c in m.verify],
+            ok=ok,
+        )
+    print("verify: OK" if ok else f"verify: FAIL ({failed})")
+    return 0 if ok else 1
 
 
 def _cmd_status(args: argparse.Namespace) -> int:
@@ -139,11 +228,25 @@ def _cmd_status(args: argparse.Namespace) -> int:
     print(f"{m.project}  version={read_version(m)}")
     print(f"  private={m.private_root}")
     print(f"  public={m.public_root} exists={m.public_root.exists()}")
-    for name in ("last_export.json", "last_scan.json", "last_verify.json"):
+    for name in ("last_export.json", "last_scan.json", "last_verify.json", "verify_stamp.json"):
         p = m.public_root / ".publish" / name
         if p.is_file():
             data = json.loads(p.read_text(encoding="utf-8"))
-            summary = {k: data[k] for k in data if k in ("ok", "hit_count", "file_count", "version", "private_sha", "exported_at")}
+            summary = {
+                k: data[k]
+                for k in data
+                if k
+                in (
+                    "ok",
+                    "hit_count",
+                    "file_count",
+                    "version",
+                    "private_sha",
+                    "export_id",
+                    "exported_at",
+                    "at",
+                )
+            }
             print(f"  {name}: {summary}")
         else:
             print(f"  {name}: (none)")
@@ -160,8 +263,12 @@ def _cmd_release(args: argparse.Namespace) -> int:
     if args.bump:
         print("bump: not implemented in this wave (edit pyproject + CHANGELOG manually)")
         return 2
-    meta = export_tree(m)
-    print(f"export: {meta['file_count']} files (private {meta['private_sha']})")
+    try:
+        meta = export_tree(m)
+    except RuntimeError as exc:
+        print(f"FAIL: export: {exc}")
+        return 1
+    print(f"export: {meta['file_count']} files (private {meta['private_sha']} id={meta.get('export_id')})")
     scan = scan_tree(m)
     if not scan["ok"]:
         print(f"scan: FAIL ({scan['hit_count']} hits)")
@@ -169,10 +276,30 @@ def _cmd_release(args: argparse.Namespace) -> int:
             print(f"  {h['file']}:{h['line']}: {h['match']!r}")
         return 1
     print("scan: OK")
-    vargs = argparse.Namespace(project_root=str(root), keep_going=False)
-    vrc = _cmd_verify(vargs)
-    if vrc != 0:
-        return vrc
+
+    # dry-run always verifies; --i-mean-it may reuse stamp for same private_sha+export_id.
+    skip = False
+    if args.i_mean_it and not args.dry_run and not getattr(args, "force_verify", False):
+        skip = _stamp_allows_skip(
+            m.public_root,
+            private_sha=str(meta["private_sha"]),
+            export_id=str(meta.get("export_id") or ""),
+            force_verify=False,
+        )
+    if not skip:
+        vargs = argparse.Namespace(project_root=str(root), keep_going=False)
+        vrc = _cmd_verify(vargs)
+        if vrc != 0:
+            return vrc
+        _write_verify_stamp(
+            m.public_root,
+            project=m.project,
+            private_sha=str(meta["private_sha"]),
+            export_id=str(meta.get("export_id") or ""),
+            cmds=[str(c) for c in m.verify],
+            ok=True,
+        )
+
     if args.dry_run:
         print("release: dry-run complete (no commit/push)")
         return 0
@@ -272,6 +399,11 @@ def build_parser() -> argparse.ArgumentParser:
     rel = sub.add_parser("release", help="doctor → export → scan → verify → optional push")
     rel.add_argument("--dry-run", action="store_true", help="stop after verify")
     rel.add_argument("--i-mean-it", action="store_true", help="commit and push public tree")
+    rel.add_argument(
+        "--force-verify",
+        action="store_true",
+        help="ignore verify_stamp.json and always run verify (with --i-mean-it)",
+    )
     rel.add_argument("--bump", choices=("patch", "minor", "major"))
     rel.add_argument("--force", action="store_true", help="continue despite doctor issues")
 

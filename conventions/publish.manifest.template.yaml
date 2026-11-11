@@ -6,8 +6,8 @@ project: "{{PROJECT}}"
 license: MIT
 private_root: .
 public_root: "{{PUBLIC_ROOT}}"
-public_github: "wwylon/{{PROJECT}}"
-private_github: "wwylon/{{PROJECT}}-private"
+public_github: "<your-github-login>/{{PROJECT}}"
+private_github: "<your-github-login>/{{PROJECT}}-private"
 default_branch: main
 
 version_from: pyproject.toml

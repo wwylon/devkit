@@ -92,7 +92,7 @@ columns. Closed idea rows must not be deleted (anti-retry). Full pipeline:
 
 ## Closing completed work
 
-1. Check every acceptance checkbox; cite ledger / test / CI evidence.
+1. Check every acceptance checkbox; cite ledger / test evidence.
 2. Mark the task `done` in `tasks.md`, then **move** long AC prose to `plan/archive/` (keep stable IDs).
 3. Update `NOW.md` (remove from Next / Doing).
 4. Journal entry for non-obvious outcomes (see also `rules/milestones.md`).
@@ -111,7 +111,7 @@ Rules:
 - Index lists **all** ledger ids; meta tags important runs with idea/task/decision.
 - Contaminated or do-not-cite runs: `cite: false` in meta (called out at top of the index).
 - Refresh the index after successful experiment runs (project hook), or run the project’s `build_experiment_index` script.
-- Unit/regression tests live under `tests/` + CI — they are **not** the experiment archive.
+- Unit/regression tests live under `tests/` + the local gate — they are **not** the experiment archive.
 
 ## What NOT to do
 

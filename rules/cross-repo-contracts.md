@@ -25,7 +25,7 @@ Before landing a contract change:
 
 1. Update the providing repo and bump version.
 2. Update the version-pin doc.
-3. Update any cross-repo round-trip fixtures (committed fixtures in both repos; CI on each side runs its own half).
+3. Update any cross-repo round-trip fixtures (committed fixtures in both repos; each side's local gate runs its own half).
 4. Open a corresponding update task in the consuming repo before closing the change.
 5. Tag the consuming-repo task with the providing-repo version number so it's traceable.
 

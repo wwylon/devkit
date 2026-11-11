@@ -60,7 +60,17 @@ def scan_tree(m: PublishManifest) -> dict:
         if path.suffix.lower() in SKIP_SUFFIXES:
             continue
         rel = path.relative_to(m.public_root).as_posix()
-        if rel.startswith(".git/") or rel.startswith(".publish/"):
+        # Warm verify preserves .venv / caches; those hold local paths and are not published product.
+        if (
+            rel.startswith(".git/")
+            or rel.startswith(".publish/")
+            or rel.startswith(".venv/")
+            or "/.venv/" in f"/{rel}"
+            or rel.startswith(".pytest_cache/")
+            or rel.startswith(".ruff_cache/")
+            or "/__pycache__/" in f"/{rel}"
+            or rel.endswith(".pyc")
+        ):
             continue
         try:
             text = path.read_text(encoding="utf-8")

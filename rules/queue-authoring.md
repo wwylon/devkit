@@ -28,6 +28,7 @@ For detailed technical specifications on writing task scripts and configuring th
 * Invent a parallel taskqueue “dev” tree — use the product `main` checkout only.
 * Treat `dispatch: remote` as a way to park work with no fleet (it falls back to local when no workers are online).
 * Mass-`tq retry` without triage — see [queue-reference.md](queue-reference.md) hygiene.
+* Run GPU / CUDA work outside the queue on the shared laptop card (serves, Ollama loads, bakeoffs) — see § GPU below.
 
 ### Daemon home
 
@@ -68,6 +69,15 @@ Set `resume_args` in the YAML for any task whose tool supports `--resume`. When 
 **`wall_clock_cap_sec` is mandatory for any task that can deadlock or hang:**
 Subgame solving, arena runs, and any process that reads from a network or socket can deadlock silently. Without a cap the process runs forever. Use 3600 for pilots, 86400 for full runs. There is no good reason to omit this. Cap kills land as `interrupted` / `tq.run.cap` (not `failed` / `tq.run.nonzero`). Long checkpointable jobs that regularly hit the cap should set `auto_retry_on_cap: true` + `execution_semantics: checkpointable` (and `resume_args`) so the daemon re-queues without babysitting — see taskqueue `docs/task_standards.md`.
 
+**Resume-aware caps (INF25-02):** for shard/relabel gen, size `wall_clock_cap_sec` from
+remaining work × measured rate + 20%. Prefer auto-retry on `tq.run.cap` when
+`resume_args` are set — do not declare research blocked after a mid-relabel cap kill.
+
+**Threads ↔ cpu_cores (INF25-05):** if `args` contain `--threads N`, YAML
+`resources.cpu_cores` must be ≥ N (pokerbot `e8_goldset_v2000` once ran at
+`cpu_cores: 1` with an 8-thread default elsewhere — pure waste). Agents: lint this
+before sync.
+
 **Do not call a shared build script from concurrent tasks.**
 Two tasks rebuilding the same binary will overwrite it mid-run. Use the project's wrapper that serializes build and execute.
 
@@ -81,7 +91,13 @@ The daemon parses `(XX.X%)` from subprocess output and displays progress + ETA. 
 
 **`resources.ram_gib` is a hint:** Soft host gate `ram_limit_pct` blocks new starts when the machine is over soft used%; hard gate `ram_hard_limit_pct` stops the highest-RSS local queue task (`status=stopped`, `tq.stop.ram`). Set `ram_gib` near expected peak RSS (not process ram-caps). The scheduler may auto-restart `stopped` tasks when soft clears unless last peak would hit hard again (`tq force` bypasses).
 
-**GPU: prefer `gpu_vram_gib` over blanket `exclusive`:** `exclusive: true` blocks **all** other tasks (CPU included). For GPU isolation while CPU work should continue, set `gpu_vram_gib` to the full card size (or near-full model footprint). Use `exclusive: true` mainly when a runtime keeps weights loaded across tasks (Ollama/vLLM `keep_alive`) and overlap is unsafe. Details: taskqueue `docs/task_standards.md` §3.
+**GPU — taskqueue is the arbiter on the shared card:**
+1. **All GPU work goes through the queue** (YAML / MCP submit), including long jobs **and** persistent processes that keep VRAM warm (`* serve`, upscalers, 3D viewers, Ollama model loads). Do not leave those running idle while other projects need the GPU.
+2. Declare measured **`resources.gpu_vram_gib`** (never invent a silent `gpu:` key). Prefer a near-full-card value so CPU-only work can still run; use **`exclusive: true`** mainly when a runtime keeps weights loaded across tasks (Ollama/vLLM `keep_alive`) and overlap is unsafe. Named **`locks:`** (e.g. `ollama`) for mutual exclusion of the same runtime.
+3. Before starting GPU work: `tq capacity` / `tq doctor` (VRAM free + foreign `gpu_processes`). Interactive one-offs: shut the serve when done; prefer `tq gpu run` / leases once that ships (taskqueue T-208).
+4. Host is ~6 GiB: two ~5 GiB declarations must not run together — if they do, file/fix admission, do not “just launch locally”.
+
+Details: taskqueue `docs/task_standards.md` §3, `docs/scheduler.md`.
 
 **`group` field for task sets:**
 Use the `group:` YAML field to cluster related tasks for `tq group list|stop|retry` and the web UI group filter. Convention: `<project>/<phase>`. Groups are an operational label — they do **not** change admission priority. Prefer `suite:` when you need enable/disable/retry of a labeled batch via `tq suite`. Both `group retry` and `suite retry` re-queue **completed** members.
@@ -102,7 +118,7 @@ Shell cleanup after exit → YAML `teardown`, not `on_complete`. (`on_complete` 
 Canonical fixture: `tqdemo` `dummy-pipe-a` → `dummy-pipe-check` → `dummy-pipe-b` (`group: tqdemo/pipe`).
 
 **Block new starts for a project (`tq freeze`):**
-`tq freeze <project>` / UI **Block project** (when a project is selected) sets `project_frozen_<name>` so the scheduler skips **new starts** for that project only (`tq.block.frozen`). Running tasks continue. `tq unfreeze` clears it. Softer cousin: `tq pause` / `tq resume`. Do not invent a separate “block sync” flag.
+`tq freeze <project>` / UI **Block project** (when a project is selected) sets `project_frozen_<name>` so the scheduler skips **new starts** for that project only (`tq.block.frozen`). Running tasks continue. `tq unfreeze` clears it. Softer cousin: `tq pause` / `tq resume`. Do not invent a separate “block sync” flag. **Agents must not `unfreeze` / `resume` unless the owner asked** — treat a frozen/paused project as off-limits, not as a stuck state to clear.
 
 **`tq force`:**
 One-shot soft resource / anti-flap bypass; re-queues the task. Expect UI toast “Forced — starts when admitted”; deps and mutex locks still apply.
